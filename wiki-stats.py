@@ -1,3 +1,4 @@
+
 import os
 import sys
 import math
@@ -52,7 +53,7 @@ class WikiGraph():
             self.articles_with_redirection = articles_with_redirection
             semi_vortexes = array.array('I', [0]*(number_of_article + 1))
             for i in range(1, number_of_article):
-                semi_vortexes[i] = final_vortexes[i -1]
+                semi_vortexes[i] = sum(final_vortexes[0:i -1])
             self.edjes = final_links
             self.vertexes = semi_vortexes
             self.names = names
@@ -61,25 +62,25 @@ class WikiGraph():
             self.number_of_redirects =  articles_with_redirection
         print('Граф загружен')
 
-    def check(self):
-         print(list(self.vertexes))
-         print(list(self.edjes))
-
     def get_number_of_links_from(self, _id):
-        return self.vertexes[_id]
+        return len(self.get_links_from(_id))
 
     def get_links_from(self, k):
-        return list(self.edjes[self.vertexes[k]:self.vertexes[k+1]])
+           if k  != len(self.vertexes) - 1:
+              return list(self.edjes[self.vertexes[k]:self.vertexes[k + 1]])
+           else:
+               return list(self.edjes[self.vertexes[k]:])
+
 
 
     def get_id(self, title):
         for i in range(len(self.names)):
             if self.names[i] == title:
-               return i
+               return i + 1
 
     def get_number_of_articles_with_link(self, number):
         i = 0
-        for vertex in self.vertexes:
+        for vertex in range(len(self.vertexes) - 1):
             if self.get_number_of_links_from(vertex) == number:
                i += 1
         return i
@@ -96,7 +97,7 @@ class WikiGraph():
     def get_page_size(self, _id):
         return self.sizes[_id]
 
-    def number_of_redirects(self):
+    def number_of_redirects_from(self):
         return self.number_of_redirects
 
     def minimal_links(self):
@@ -104,128 +105,62 @@ class WikiGraph():
 
     def number_of_articles_with_minimal_links(self):
         minimal_links = self.minimal_links()
-        counter = 0
-        for i in self.vertexes:
-            if i == minimal_links:
-               counter += 1
-        return counter
+        return self.get_number_of_articles_with_link(minimal_links)
 
     def maximal_links(self):
-        return  max(self.vertexes[1:])
+        return  max([self.get_number_of_links_from(i) for i in range(len(self.vertexes) - 1)])
 
     def number_of_articles_with_maximal_links(self):
-        maximal_links = self.minimal_links()
-        counter = 0
-        for i in self.vertexes:
-            if i == maximal_links:
-               counter += 1
-        return counter
+        maximal_links = self.maximal_links()
+        return self.get_number_of_articles_with_link(maximal_links)
 
     def article_with_maximal_links(self):
-        maximal_links = self.minimal_links()
-        for i in self.vertexes:
-            if i == maximal_links:
-               return self.get_title(i)
-
+        maximal_links = self.maximal_links()
+        for i in range(len(self.vertexes) - 1):
+            if self.get_number_of_links_from(i) == maximal_links:
+               return self.get_title(i - 1)
 
     def mean_number_of_links_in_article(self):
-        return statistics.mean([self.number_of_links_to(vertex) for vertex in self.vertexes])
+        return statistics.mean([self.get_number_of_links_from(vertex) for vertex in range(len(self.vertexes) - 1)])
 
-    def links_to_vertex(self, vertex):
-         answer = []
-         for article in self.vertexes:
-             if not self.is_redirect(article) and vertex in self.get_links_from(article):
-                answer.append(article)
-         return answer
+    def links_to_article(self, vertex):
+        answer = []
+        for node in range(len(self.vertexes) - 1):
+            if vertex in self.get_links_from(node):
+                answer.append(node)
+        return answer
 
     def number_of_links_to(self, vertex):
-        return len(self.links_to_vertex(self, vertex))
+        return len(self.links_to_article(vertex))
 
-    def min_number_of_links_to(self):
-        return min([self.number_of_links_to(vertex) for vertex in self.vertexes])
+    def min_number_of_outer_links(self):
+        return min([self.number_of_links_to(vertex) for vertex in range(len(self.vertexes) - 1)])
 
-    def number_of_articles_with_min_number_of_links_to(self):
-        i = 0
-        minimal = self.min_number_of_links_to()
-        for vertex in self.vertexes:
+    def max_number_of_outer_links(self):
+        return max([self.number_of_links_to(vertex) for vertex in range(len(self.vertexes) - 1)])
+
+    def number_of_articles_with_min_number_of_outer_links(self):
+        minimal = self.min_number_of_outer_links()
+        counter = 0
+        for vertex in range(len(self.vertexes) - 1):
             if self.number_of_links_to(vertex) == minimal:
-               i += 1
-        return i
+                counter += 1
+        return counter
 
-    def max_links_to_article(self):
-        return max([self.number_of_links_to(vertex) for vertex in self.vertexes])
-
-    def number_of_articles_with_max_number_of_links_to(self):
-         i = 0
-         maximal = self.max_links_to_article()
-         for vertex in self.vertexes:
-             if self.number_of_links_to(vertex) == maximal:
-                i += 1
-         return i
-
-    def article_with_max_outer_links(self):
-        maximal = self.max_links_to_article()
-        for vertex in self.vertexes:
-             if self.number_of_links_to(vertex) == maximal:
-                return vertex
-
-    def mean_number_of_outer_links(self):
-        return statistics.mean([self.number_of_links_to(vertex) for vertex in self.vertexes])
-
-    def redirects_to_article(self, vertex):
-         answer = []
-         for article in self.vertexes:
-            if self.is_redirect(article) and vertex in self.get_links_from(article):
-               answer.append(article)
-         return answer
-
-    def number_of_redirects_to_article(self, vertex):
-        return len(self.redirects_to_article(vertex))
-
-    def max_number_of_redirects(self):
-        return max([self.number_of_redirects_to_article(vertex) for vertex in self.vertexes]
-
-    def min_number_of_redirects(self):
-        return min([self.number_of_redirects_to_article(vertex) for vertex in self.vertexes]
-
-    def number_of_articles_with_min_number_of_redirects_to(self):
-         i = 0
-         minimal = self.min_number_of_redirects()
-         for vertex in self.vertexes:
-             if self.number_of_redirects(vertex) == minimal:
-                i += 1
-         return i
-
-    def number_of_articles_with_max_number_of_redirects_to(self):
-         i = 0
-         maximal = self.max_number_of_redirects()
-         for vertex in self.vertexes:
-             if self.number_of_redirects(vertex) == maximal:
-                i += 1
-         return i
-
-    def article_with_max_outer_redirects(self):
-       maximal = self.max_number_of_redirects()
-       for vertex in self.vertexes:
+    def number_of_articles_with_max_number_of_outer_links(self):
+        maximal = self.max_number_of_outer_links()
+        counter = 0
+        for vertex in range(len(self.vertexes) - 1):
             if self.number_of_links_to(vertex) == maximal:
-               return vertex
+                counter += 1
+        return counter
 
-    def mean_number_of_outer_links(self):
-         return statistics.mean([self.number_of_redirects(vertex) for vertex in self.vertexes])
+    def article_with_min_number_of_outer_links(self):
+        maximal = self.max_number_of_outer_links()
+        for vertex in range(len(self.vertexes) - 1):
+            if self.number_of_links_to(vertex) == maximal:
+                return self.get_id(vertex)
 
-    def number_of_articles_with_number_of_links_to(self, number):
-        i = 0
-        for vertex in self.vertexes:
-            if self.number_of_links_to(vertex) == number:
-               i += 1
-        return i
-
-    def number_of_articles_with_number_of_redirects(self, number):
-        i = 0
-        for vertex in self.vertexes:
-            if self.number_of_redirects_to_article(vertex) == number:
-               i += 1
-        return i
 
 def hist(fname, xlabel, ylabel, title, y_objects, x_objects):
     plt.clf()
@@ -233,7 +168,7 @@ def hist(fname, xlabel, ylabel, title, y_objects, x_objects):
     plt.xlabel(xlabel)
     plt.title(title)
     plt.plot(x_objects, y_objects)
-    plt.savefiplt.savefig('%s.%s' % (fname, 'png'))
+   # plt.savefiplt.savefig('%s.%s' % (fname, 'png'))
 
 def first_hist(wiki):
     x_objects = range(wiki.maximal_links())
@@ -251,6 +186,8 @@ def third_hist(wiki):
     hist('second_hist', 'number_of_links_to', 'number_of_articles', y_objects, x_objects)
 
 name = '/home/student/a/wiki_small.txt'
+wiki = WikiGraph(name)
+index = wiki.get_id('Python')
 #Загружаю граф из файла: wiki_small.txt
 #Граф загружен
 #Количество статей с перенаправлением: 50 (4.13%)
@@ -277,7 +214,21 @@ name = '/home/student/a/wiki_small.txt'
 #Python
 #UNIX
 #Список_файловых_систем
-wiki = WikiGraph(name)
-print('Количество статей с перенаправлением:' + ' ' + str(wiki.number_of_redirects())
+#print(wiki.get_id(wiki.vertexes[1]))
 print('Минимальное количество ссылок из статьи:' + ' ' + str(wiki.minimal_links()))
 print('Kоличество статей с минимальным количеством ссылок:' + ' ' + str(wiki.number_of_articles_with_minimal_links()))
+print('Максимальное количество ссылок из статьи:' + ' ' + str(wiki.maximal_links()))
+print('Количество статей с максимальным количеством ссылок:' + ' ' + str(wiki.number_of_articles_with_maximal_links()))
+print('Статья с наибольшим количеством ссылок:' + ' ' + str(wiki.article_with_maximal_links()))
+print('Среднее количество ссылок в статье:' + ' ' + str(wiki.mean_number_of_links_in_article()))
+print('Минимальное количество ссылок на статью:' + ' ' + str(wiki.min_number_of_outer_links()))
+print('Количество статей с минимальным количеством внешних ссылок: ' + str(wiki.number_of_articles_with_min_number_of_outer_links()))
+print('Максимальное количество ссылок на статью: ' + str(wiki.max_number_of_outer_links()))
+print('Количество статей с максимальным количеством внешних ссылок: ' + str(wiki.number_of_articles_with_max_number_of_outer_links()))
+print('Статья с наибольшим количеством внешних ссылок: ' + str(wiki.article_with_min_number_of_outer_links()))
+'''print('Среднее количество внешних ссылок на статью: ' + str(wiki.mean_number_of_outer_links()))
+print('Количество статей с минимальным количеством внешних перенаправлений: ' + str(wiki.number_of_articles_with_min_number_of_redirects_to()))
+print('Максимальное количество перенаправлений на статью: ' + str(wiki.max_number_of_redirects()))
+print('Количество статей с максимальным количеством внешних перенаправлений: ' + str(wiki.number_of_articles_with_max_number_of_redirects_to()))
+print('Статья с наибольшим количеством внешних перенаправлений: ' + str(wiki.article_with_max_outer_redirects()))
+print('Среднее количество внешних перенаправлений на статью: ' + str(wiki.mean_number_of_redirects()))'''
