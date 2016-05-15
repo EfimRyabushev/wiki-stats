@@ -163,20 +163,3 @@ class Wiki:
            if self.number_of_links_to(i) == minimal:
                return self.get_name(i)
                
-print('Минимальное количество ссылок из статьи:' + ' ' + str(wiki.minimal_links()))
-print('Kоличество статей с минимальным количеством ссылок:' + ' ' + str(wiki.number_of_articles_with_minimal_links()))
-print('Максимальное количество ссылок из статьи:' + ' ' + str(wiki.maximal_links()))
-print('Количество статей с максимальным количеством ссылок:' + ' ' + str(wiki.number_of_articles_with_maximal_links()))
-print('Статья с наибольшим количеством ссылок:' + ' ' + str(wiki.article_with_maximal_links()))
-print('Среднее количество ссылок в статье:' + ' ' + str(wiki.mean_number_of_links_in_article()))
-print('Минимальное количество ссылок на статью:' + ' ' + str(wiki.min_number_of_outer_links()))
-print('Количество статей с минимальным количеством внешних ссылок: ' + str(wiki.number_of_articles_with_min_number_of_outer_links()))
-print('Максимальное количество ссылок на статью: ' + str(wiki.max_number_of_outer_links()))
-print('Количество статей с максимальным количеством внешних ссылок: ' + str(wiki.number_of_articles_with_max_number_of_outer_links()))
-print('Статья с наибольшим количеством внешних ссылок: ' + str(wiki.article_with_min_number_of_outer_links()))
-'''print('Среднее количество внешних ссылок на статью: ' + str(wiki.mean_number_of_outer_links()))
-print('Количество статей с минимальным количеством внешних перенаправлений: ' + str(wiki.number_of_articles_with_min_number_of_redirects_to()))
-print('Максимальное количество перенаправлений на статью: ' + str(wiki.max_number_of_redirects()))
-print('Количество статей с максимальным количеством внешних перенаправлений: ' + str(wiki.number_of_articles_with_max_number_of_redirects_to()))
-print('Статья с наибольшим количеством внешних перенаправлений: ' + str(wiki.article_with_max_outer_redirects()))
-print('Среднее количество внешних перенаправлений на статью: ' + str(wiki.mean_number_of_redirects()))'''
